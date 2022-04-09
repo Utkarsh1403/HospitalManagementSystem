@@ -14,14 +14,30 @@ else:
     con.execute('''CREATE TABLE PATIENTSDETAILS(
         ID INTEGER PRIMARY KEY AUTOINCREMENT,
         Name TEXT,Mobilenumber INTEGER,Age INTEGER, 
-        Address TEXT,Dob INTEGER, Place TEXT,Pincode INTEGER);''')
+        Address TEXT,Dob TEXT, Place TEXT,Pincode INTEGER);''')
 
 print("Table has Created")
 
 app = Flask(__name__)
 
-@app.route("/")
+@app.route('/')
+def hello_word():
+
+    return  flask.render_template("login.html")
+database={'utkarsh':'123','admin':'12345'}
+
+@app.route("/login",methods=['POST','GET'])
 def login():
+    name= request.form['username']
+    pwd = request.form['password']
+    if name not in database:
+        flask.render_template("login.html",info='Invalid User')
+
+    elif database[name]!=pwd:
+        return flask.render_template("login.html",info='Invalid password')
+
+    else:
+        return redirect("/dashboard")
 
     return flask.render_template("login.html")
 
@@ -45,7 +61,7 @@ def addPatient():
         print(getPincode)
 
         try:
-            con.execute("INSERT INTO PATIENTSDETAILS(Name,Mobilenumber,Age,Address,Dob,Place,Pincode) VALUES('"+getName+"',"+getMobilno+","+getAge+",'"+getAddress+"',"+getDob+",'"+getPlace+"',"+getPincode+")")
+            con.execute("INSERT INTO PATIENTSDETAILS(Name,Mobilenumber,Age,Address,Dob,Place,Pincode) VALUES('"+getName+"',"+getMobilno+","+getAge+",'"+getAddress+"','"+getDob+"','"+getPlace+"',"+getPincode+")")
             print("Succesfully Inserted")
             con.commit()
             return redirect('/Viewall')
@@ -87,6 +103,8 @@ def delete():
             # result = curr.fetchall()
             # print(result)
            con.commit()
+           return redirect('/Viewall')
+
         except Exception as e:
             print(e)
     return flask.render_template("delete.html")
@@ -109,14 +127,13 @@ def update():
             curr.execute("SELECT* FROM PATIENTSDETAILS WHERE Mobilenumber="+getMobilno)
             print("SUCCESSFULLY SELECTED!")
             result = curr.fetchall()
-            return redirect("/viewupdate")
+            if len(result)==0:
+                print("Invalid Mobile Number")
+            else:
+                print(result)
+                return redirect("/viewupdate")
         except Exception as e:
             print(e)
-            # if len(result)==0:
-            #     print("Invalid Mobile Number")
-            # else:
-            #     print(len(result))
-            #     return flask.render_template("update.html",)
 
     return flask.render_template("update.html")
 
@@ -139,7 +156,9 @@ def viewupdate():
         print(getPlace)
         print(getPincode)
         try:
-            con.execute("UPDATE PATIENTSDETAILS(Name,Mobilenumber,Age,Address,Dob,Place,Pincode) VALUES('"+getName+"',"+getMobilno+","+getAge+",'"+getAddress+"',"+getDob+",'"+getPlace+"',"+getPincode+")")
+            query="UPDATE PATIENTSDETAILS SET Name='"+getName+"',Mobilenumber="+getMobilno+",Age="+getAge+",Address='"+getAddress+"',Dob="+getDob+",Place='"+getPlace+"',Pincode="+getPincode+" WHERE Mobilenumber="+getMobilno
+            print(query)
+            curr.execute(query)
             print("SUCCESFULLY UPDATED!")
             con.commit()
             return redirect('/Viewall')
